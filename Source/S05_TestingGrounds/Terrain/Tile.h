@@ -6,6 +6,21 @@
 #include "GameFramework/Actor.h"
 #include "Tile.generated.h"
 
+
+USTRUCT()
+struct FSpawnPosition
+{
+	GENERATED_USTRUCT_BODY()
+
+	FVector Location;
+	float Rotation;
+	float Scale;
+
+};
+
+
+class UActorPool;
+
 UCLASS()
 class S05_TESTINGGROUNDS_API ATile : public AActor
 {
@@ -21,16 +36,42 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EEndPlayReason) override;
+
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Navigation")
+	FVector NavigationBoundsOffset;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Spawning")
+	FVector MinExtend;
+	UPROPERTY(EditDefaultsOnly, Category = "Spawning")
+	FVector MaxExtend;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	
+	UFUNCTION(BlueprintCallable, Category = "Pool")
+	void SetPool(UActorPool* Pool);
+
+	
+
+
 private:
+
+	void PositionNavMeshBoundsVolume();
+
+	TArray<FSpawnPosition> RandomSpawnPositions(int MinSpawn, int MaxSpawn, float Radius, float MinScale, float MaxScale);
+
 	bool FindEmptyLocation(FVector& OutLocation, float Radius);
 
-	void PlaceActor(TSubclassOf<AActor> ToSpawn, FVector SpawnPoint, float Rotation, float Scale);
+	void PlaceActor(TSubclassOf<AActor> ToSpawn, FSpawnPosition SpawnPosition);
 
 	bool CanSpawnAtLocation(FVector Location, float Radius);
+
+	UActorPool* Pool;
 	
+	AActor* NavMeshBoundsVolume;
 };
